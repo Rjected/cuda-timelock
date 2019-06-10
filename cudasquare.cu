@@ -13,9 +13,6 @@
  *
  * @exceptsafe TODO
  */
-// ExpSquare sets z = x**(2**y) mod |m| (i.e. the sign of m is ignored), and returns z.
-// If y < 0, the result is 1; if y == 0 the result is x, if m == nil or m == 0, z = x**(2**y).
-// See Knuth, volume 2, section 4.6.3.
 // If you put this __global__ back then it breaks because GMP is host code, not device code.
 //__global__ 
 void expSquare(mpz_t *result, mpz_t *a, const mpz_t t, const mpz_t *N) {
