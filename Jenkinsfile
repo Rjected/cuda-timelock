@@ -1,9 +1,9 @@
 pipeline {
   agent any
   stages {
-    stage('') {
+    stage('build') {
       steps {
-        build 'sh \'make check\''
+        sh 'make -j'
       }
     }
   }
