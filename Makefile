@@ -1,16 +1,32 @@
-CC=gcc
-NVCC=nvcc
-CXXFLAGS= -std=c++11
-CUDAFLAGS= -c -std=c++11
-LIBS=-lgmp
-LIBDIRS=-L/usr/local/cuda/lib64
-INCDIRS=-L/usr/local/cuda/include
+ifdef GMP_HOME
+  INC := -I$(GMP_HOME)/include
+  LIB := -L$(GMP_HOME)/lib
+endif
+ifndef GMP_HOME
+  INC :=
+  LIB :=
+endif
 
-cudasquare.o: cudasquare.cu
-	$(NVCC) $(CUDAFLAGS) cudasquare.cu
-
-all: cudasquare.o
-	$(CC) -o cudasquare cudasquare.o $(LIBDIRS) $(INCDIRS) $(LIBS) $(CXXFLAGS)
+pick:
+	@echo
+	@echo Please run one of the following:
+	@echo "   make kepler"
+	@echo "   make maxwell"
+	@echo "   make pascal"
+	@echo "   make volta"
+	@echo
 
 clean:
-	rm -rf cudasquare *.o
+	rm -f powmo
+
+kepler:
+	nvcc $(INC) $(LIB) -I../../include -arch=sm_35 powm_odd.cu -o powmo -lgmp
+
+maxwell:
+	nvcc $(INC) $(LIB) -I../../include -arch=sm_50 powm_odd.cu -o powmo -lgmp
+
+pascal:
+	nvcc $(INC) $(LIB) -I../../include -arch=sm_60 powm_odd.cu -o powmo -lgmp
+
+volta:
+	nvcc $(INC) $(LIB) -I../../include -arch=sm_70 powm_odd.cu -o powmo -lgmp
