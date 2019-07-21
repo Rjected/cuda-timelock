@@ -18,6 +18,8 @@ RUN apt-get update --fix-missing && apt-get install -y \
     wget \
     libevent-dev \
     build-essential \
+    nvidia-driver-418 \
+    libgmp-dev \
     make
 
 CMD ["/bin/bash"]
