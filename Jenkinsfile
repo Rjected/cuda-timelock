@@ -10,8 +10,7 @@ pipeline {
     stage('GPU Check') {
         steps {
             sh 'nvcc --version'
-            sh 'ls -lha /usr/bin/'
-            sh 'nvidia-smi -a'
+            /* sh 'nvidia-smi -a' */
         }
     }
 
