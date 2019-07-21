@@ -1,3 +1,10 @@
+#include <stdio.h>
+#include <stdint.h>
+#include <cuda.h>
+#include <gmp.h>
+#include "cgbn/cgbn.h"
+#include "utility/support.h"
+
 /**
  *
  * expSquare sets z = x**(2**y) mod |m| (i.e. the sign of m is ignored), and returns z.
@@ -12,8 +19,12 @@
  *
  * @exceptsafe TODO
  */
+
 // If you put this __global__ back then it breaks because GMP is host code, not device code.
 //__global__
-void expSquare(mpz_t *result, mpz_t *a, const mpz_t t, const mpz_t *N) {
-    return
+
+
+template<class params>
+__global__ void kernel_repeat_square(mpz_t *result, mpz_t *a, const mpz_t t, const mpz_t *N) {
+    return;
 }

@@ -1,9 +1,22 @@
 pipeline {
-  agent any
+  agent { dockerfile true }
   stages {
-    stage('build') {
+    stage('Initialize') {
+        steps {
+            sh ''
+        }
+    }
+
+    stage('GPU Check') {
+        steps {
+            sh 'nvcc --version'
+            sh 'nvidia-smi -a'
+        }
+    }
+
+    stage('Build') {
       steps {
-        sh 'make -j'
+        sh 'make -j kepler'
       }
     }
   }

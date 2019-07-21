@@ -23,7 +23,7 @@ IN THE SOFTWARE.
 #include <cuda.h>
 #include <gmp.h>
 #include "cgbn/cgbn.h"
-#include "../utility/support.h"
+#include "utility/support.h"
 
 // For this example, there are quite a few template parameters that are used to generate the actual code.
 // In order to simplify passing many parameters, we use the same approach as the CGBN library, which is to
