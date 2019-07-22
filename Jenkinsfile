@@ -4,13 +4,12 @@ pipeline {
     stage('GPU Check') {
         steps {
             sh 'nvcc --version'
-            sh 'nvidia-smi -a'
         }
     }
 
     stage('Build') {
         steps {
-            sh 'make -j kepler'
+            sh 'make -j check'
         }
     }
 
