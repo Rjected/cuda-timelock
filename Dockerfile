@@ -1,4 +1,4 @@
-FROM nvidia/cuda:9.0-base
+FROM nvidia/cuda
 # LABEL maintainer="p.heywood@sheffield.ac.uk"
 
 ENV NVIDIA_VISIBLE_DEVICES all
