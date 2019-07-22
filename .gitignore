@@ -34,5 +34,5 @@
 # VSCode
 .vscode/
 
-# Do not include powmo
-powmo
+# Do not include binaries
+bin/

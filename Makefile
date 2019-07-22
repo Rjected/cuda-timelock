@@ -7,6 +7,8 @@ ifndef GMP_HOME
   LIB :=
 endif
 
+# TESTS = test/test_powmo.cu
+
 pick:
 	@echo
 	@echo Please run one of the following:
@@ -14,19 +16,24 @@ pick:
 	@echo "   make maxwell"
 	@echo "   make pascal"
 	@echo "   make volta"
+	@echo "   make check"
 	@echo
 
 clean:
-	rm -f powmo
+	rm -f bin/*
+
+check:
+	nvcc $(INC) $(LIB) -Iinclude test/test_powmo.cu -o bin/test_powmo -lgmp
+	./bin/test_powmo
 
 kepler:
-	nvcc $(INC) $(LIB) -Iinclude -arch=sm_35 powm_odd.cu -o powmo -lgmp
+	nvcc $(INC) $(LIB) -Iinclude -arch=sm_35 src/cudasquare.cu -o bin/powmo -lgmp
 
 maxwell:
-	nvcc $(INC) $(LIB) -Iinclude -arch=sm_50 powm_odd.cu -o powmo -lgmp
+	nvcc $(INC) $(LIB) -Iinclude -arch=sm_50 src/cudasquare.cu -o bin/powmo -lgmp
 
 pascal:
-	nvcc $(INC) $(LIB) -Iinclude -arch=sm_60 powm_odd.cu -o powmo -lgmp
+	nvcc $(INC) $(LIB) -Iinclude -arch=sm_60 src/cudasquare.cu -o bin/powmo -lgmp
 
 volta:
-	nvcc $(INC) $(LIB) -Iinclude -arch=sm_70 powm_odd.cu -o powmo -lgmp
+	nvcc $(INC) $(LIB) -Iinclude -arch=sm_70 src/cudasquare.cu -o bin/powmo -lgmp

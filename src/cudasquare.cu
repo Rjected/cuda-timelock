@@ -1,9 +1,4 @@
-#include <stdio.h>
-#include <stdint.h>
-#include <cuda.h>
-#include <gmp.h>
-#include "cgbn/cgbn.h"
-#include "utility/support.h"
+#include "powm_odd.cu"
 
 /**
  *
@@ -24,7 +19,14 @@
 //__global__
 
 
-template<class params>
-__global__ void kernel_repeat_square(mpz_t *result, mpz_t *a, const mpz_t t, const mpz_t *N) {
-    return;
+/* template<class params> */
+/* __global__ void kernel_repeat_square(mpz_t *result, mpz_t *a, const mpz_t t, const mpz_t *N) { */
+/*     return; */
+/* } */
+
+int main() {
+  typedef powm_params_t<8, 1024, 5> params;
+
+  run_test<params>(10000);
+  return 0;
 }

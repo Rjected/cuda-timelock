@@ -22,8 +22,8 @@ IN THE SOFTWARE.
 #include <stdlib.h>
 #include <cuda.h>
 #include <gmp.h>
-#include "cgbn/cgbn.h"
-#include "utility/support.h"
+#include "../include/cgbn/cgbn.h"
+#include "support.h"
 
 // For this example, there are quite a few template parameters that are used to generate the actual code.
 // In order to simplify passing many parameters, we use the same approach as the CGBN library, which is to
@@ -338,8 +338,8 @@ void run_test(uint32_t instance_count) {
   CUDA_CHECK(cgbn_error_report_free(report));
 }
 
-int main() {
-  typedef powm_params_t<8, 1024, 5> params;
+/* int main() { */
+/*   typedef powm_params_t<8, 1024, 5> params; */
 
-  run_test<params>(10000);
-}
+/*   run_test<params>(10000); */
+/* } */

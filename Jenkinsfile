@@ -1,7 +1,6 @@
 pipeline {
   agent { dockerfile true }
   stages {
-
     stage('GPU Check') {
         steps {
             sh 'nvcc --version'
@@ -10,9 +9,15 @@ pipeline {
     }
 
     stage('Build') {
-      steps {
-        sh 'make -j kepler'
-      }
+        steps {
+            sh 'make -j kepler'
+        }
+    }
+
+    stage('Test') {
+        steps {
+            sh ''
+        }
     }
   }
 }

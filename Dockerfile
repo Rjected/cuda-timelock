@@ -1,4 +1,4 @@
-FROM nvidia/cuda
+FROM nvidia/cuda:9.0-base
 # LABEL maintainer="p.heywood@sheffield.ac.uk"
 
 ENV NVIDIA_VISIBLE_DEVICES all
@@ -18,7 +18,6 @@ RUN apt-get update --fix-missing && apt-get install -y \
     wget \
     libevent-dev \
     build-essential \
-    nvidia-driver-418 \
     libgmp-dev \
     make
 
