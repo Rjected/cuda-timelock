@@ -23,6 +23,7 @@ IN THE SOFTWARE.
 #include <cuda.h>
 #include <gmp.h>
 #include "../include/cgbn/cgbn.h"
+#include "../include/insecure_rsa/rsa.h"
 #include "support.h"
 
 // For this example, there are quite a few template parameters that are used to generate the actual code.
@@ -207,75 +208,93 @@ class powm_odd_t {
   }
 
   // this is assuming power will equal 2^t. if we actually calculated 2^t then we would have a lot of memory issues.
-  __device__ __forceinline__ void grouped_fixed_window_powm_odd(bn_t &result, const bn_t &x, const bn_t &t, const bn_t &modulus, const uint32_t &grouping) {
+  __device__ __forceinline__ void grouped_fixed_window_powm_odd(bn_t &result, const bn_t &x, const bn_t &t, const bn_t &modulus, const uint32_t grouping) {
 
     // First we calculate the exponent, in this case 2^grouping.
     // Then we divide to get an index, and take the modulus to get the last exponent.
     bn_t primary_exponent;
     // this is 1 because 1 = 2^0, we shift grouping times so the result will be
     // 2^0 * 2^grouping = 2^(0 + grouping) = 2^grouping
-    cgbn_set_ui32(_env, &primary_exponent, 1);
-    cgbn_shift_left(_env, &primary_exponent, grouping);
+    cgbn_set_ui32(_env, primary_exponent, 1);
+    cgbn_shift_left(_env, primary_exponent, primary_exponent, grouping);
 
     // limit = t / grouping
     // we don't care about the result being stored in a bn_t
-    uint32_t limit = cgbn_div_ui32(_env, NULL, &t, grouping);
+    bn_t limit;
+    cgbn_div_ui32(_env, limit, t, grouping);
 
     // final_grouping = t % grouping
     // we don't care about the result being stored in a bn_t
-    uint32_t final_grouping = cgbn_rem_ui32(_env, NULL, &t, grouping);
+    const uint32_t final_grouping = cgbn_rem_ui32(_env, t, grouping);
+
+    bn_t one;
+    cgbn_set_ui32(_env, one, 1);
+    bn_t zero;
+    cgbn_set_ui32(_env, zero, 0);
 
     // Now we take 2^final_grouping for the final exponent
     bn_t final_exponent;
-    cgbn_set_ui32(_env, &final_exponent, 1);
-    cgbn_shift_left(_env, &final_exponent, final_grouping);
+    cgbn_set_ui32(_env, final_exponent, 1);
+    cgbn_shift_left(_env, final_exponent, final_exponent, final_grouping);
 
+    // x is not constant so we create a mutable one
+    bn_t mut_x;
+    cgbn_set(_env, mut_x, x);
     // now we do this a bunch of times
-    int index;
-    for (index = 0; index < limit; ++index) {
+    while (!cgbn_equals(_env, limit, zero)) {
       // x = x ^ primary_exponent (mod N)
-      fixed_window_powm_odd(x, x, &primary_exponent, modulus);
+      fixed_window_powm_odd(mut_x, mut_x, primary_exponent, modulus);
+      cgbn_sub(_env, limit, limit, one);
     }
 
     // and finally, the last will store the result
-    fixed_window_powm_odd(result, x, &final_exponent, modulus);
+    fixed_window_powm_odd(result, mut_x, final_exponent, modulus);
 
     return;
   }
 
   // this is assuming power will equal 2^t. if we actually calculated 2^t then we would have a lot of memory issues.
-  __device__ __forceinline__ void grouped_sliding_window_powm_odd(bn_t &result, const bn_t &x, const bn_t &t, const bn_t &modulus, const uint32_t &grouping) {
+  __device__ __forceinline__ void grouped_sliding_window_powm_odd(bn_t &result, const bn_t &x, const bn_t &t, const bn_t &modulus, const uint32_t grouping) {
 
     // First we calculate the exponent, in this case 2^grouping.
     // Then we divide to get an index, and take the modulus to get the last exponent.
     bn_t primary_exponent;
     // this is 1 because 1 = 2^0, we shift grouping times so the result will be
     // 2^0 * 2^grouping = 2^(0 + grouping) = 2^grouping
-    cgbn_set_ui32(_env, &primary_exponent, 1);
-    cgbn_shift_left(_env, &primary_exponent, grouping);
+    cgbn_set_ui32(_env, primary_exponent, 1);
+    cgbn_shift_left(_env, primary_exponent, primary_exponent, grouping);
 
     // limit = t / grouping
     // we don't care about the result being stored in a bn_t
-    uint32_t limit = cgbn_div_ui32(_env, NULL, &t, grouping);
+    bn_t limit;
+    cgbn_div_ui32(_env, limit, t, grouping);
 
     // final_grouping = t % grouping
     // we don't care about the result being stored in a bn_t
-    uint32_t final_grouping = cgbn_rem_ui32(_env, NULL, &t, grouping);
+    const uint32_t final_grouping = cgbn_rem_ui32(_env, t, grouping);
+
+    bn_t one;
+    cgbn_set_ui32(_env, one, 1);
+    bn_t zero;
+    cgbn_set_ui32(_env, zero, 0);
 
     // Now we take 2^final_grouping for the final exponent
     bn_t final_exponent;
-    cgbn_set_ui32(_env, &final_exponent, 1);
-    cgbn_shift_left(_env, &final_exponent, final_grouping);
+    cgbn_set_ui32(_env, final_exponent, 1);
+    cgbn_shift_left(_env, final_exponent, final_exponent, final_grouping);
 
+    // x is not constant so we create a mutable one
+    bn_t mut_x;
+    cgbn_set(_env, mut_x, x);
     // now we do this a bunch of times
-    int index;
-    for (index = 0; index < limit; ++index) {
+    while (!cgbn_equals(_env, limit, zero)) {
       // x = x ^ primary_exponent (mod N)
-      sliding_window_powm_odd(x, x, &primary_exponent, modulus);
+      sliding_window_powm_odd(mut_x, mut_x, primary_exponent, modulus);
+      cgbn_sub(_env, limit, limit, one);
     }
 
     // and finally, the last will store the result
-    sliding_window_powm_odd(result, x, &final_exponent, modulus);
+    sliding_window_powm_odd(result, mut_x, final_exponent, modulus);
 
     return;
   }
@@ -307,13 +326,71 @@ class powm_odd_t {
     return instances;
   }
 
+  // this generates timelock puzzle instances, for example 2^2^4444 or 5^2^12345 or 7^2^3333
+  // all mod the same N. This is the case because when testing, we're generating the instances
+  // probably knowing the factorization of N.
+  // This way we can test that a^2^t (mod N), calculated from cgbn, = a^(2^t (mod phi(N)) (mod N),
+  // calculated from gmp.
+  // Either that, or we just let GMP do all of the work
+  __host__ static instance_t *generate_puzzle_instances(uint32_t count, const mpz_t N) {
+    instance_t *instances=(instance_t *)malloc(sizeof(instance_t)*count);
+    int         index;
+
+    mpz_t two; // 2
+    mpz_init(two);
+    mpz_set_ui(two, 2);
+
+    mpz_t five; // 5
+    mpz_init(five);
+    mpz_set_ui(five, 5);
+
+    mpz_t seven; // 7
+    mpz_init(seven);
+    mpz_set_ui(seven, 7);
+
+    mpz_t thirteen; // 13
+    mpz_init(thirteen);
+    mpz_set_ui(thirteen, 13);
+
+    for(index=0;index<count;index++) {
+        // create 2^whatever
+        mpz_t e;
+        mpz_init(e);
+
+        // just alternate between our bases
+        switch (index % 4) {
+          case 0:
+            // e = 2 ^(random number between 1024 and b)
+            mpz_pow_ui(e, two, 1024 + (rand() % (params::BITS - 1024)));
+          case 1:
+            // e = 5 ^(random number between 1024 and 4096)
+            mpz_pow_ui(e, five, 1024 + (rand() % (params::BITS - 1024)));
+          case 2:
+            // e = 7 ^(random number between 1024 and 4096)
+            mpz_pow_ui(e, seven, 1024 + (rand() % (params::BITS - 1024)));
+          case 3:
+            // e = 13 ^(random number between 1024 and 4096)
+            mpz_pow_ui(e, thirteen, 1024 + (rand() % (params::BITS - 1024)));
+        }
+
+        instances[index] = create_instance(two, e, N);
+        mpz_clear(e);
+    }
+
+    mpz_clear(two);
+    mpz_clear(five);
+    mpz_clear(seven);
+    mpz_clear(thirteen);
+    return instances;
+  }
+
   __host__ static instance_t create_instance(const mpz_t x, const mpz_t e, const mpz_t N) {
     instance_t instance;
     // first, we get the number of limbs
 
-    size_t num_limbs_x = mpz_size(x);
-    size_t num_limbs_e = mpz_size(e);
-    size_t num_limbs_N = mpz_size(N);
+    const size_t num_limbs_x = mpz_size(x);
+    const size_t num_limbs_e = mpz_size(e);
+    const size_t num_limbs_N = mpz_size(N);
 
     // just have these assertions in case anyone tries to pull any funny business
     // any one of these failing means the input is too big and we would have caused a segfault
@@ -348,7 +425,7 @@ class powm_odd_t {
     return instance;
   }
 
-  __host__ static instance_t *create_instances(const mpz_t* xs, const mpz_t* es, const mpz_t* Ns, uint32_t count) {
+  __host__ static instance_t *create_instances(const mpz_t* xs, const mpz_t* es, const mpz_t* Ns, const uint32_t count) {
     instance_t *instances=(instance_t *)malloc(sizeof(instance_t)*count);
     int         index;
 
@@ -421,6 +498,63 @@ __global__ void kernel_powm_odd(cgbn_error_report_t *report, typename powm_odd_t
   cgbn_store(po._env, &(instances[instance].result), r);
 }
 
+// grouped fixed kernel implementation using cgbn -- IMPORTANT! default grouping = 1024
+template<class params>
+__global__ void grouped_fixed_kernel_powm_odd(cgbn_error_report_t *report, typename powm_odd_t<params>::instance_t *instances, const uint32_t count, const uint32_t grouping) {
+  int32_t instance;
+
+  // decode an instance number from the blockIdx and threadIdx
+  instance=(blockIdx.x*blockDim.x + threadIdx.x)/params::TPI;
+  if(instance>=count)
+    return;
+
+  powm_odd_t<params>                 po(cgbn_report_monitor, report, instance);
+  typename powm_odd_t<params>::bn_t  r, x, p, m;
+
+  // the loads and stores can go in the class, but it seems more natural to have them
+  // here and to pass in and out bignums
+  cgbn_load(po._env, x, &(instances[instance].x));
+  cgbn_load(po._env, p, &(instances[instance].power));
+  cgbn_load(po._env, m, &(instances[instance].modulus));
+
+  // this can be either fixed_window_powm_odd or sliding_window_powm_odd.
+  // when TPI<32, fixed window runs much faster because it is less divergent, so we use it here
+  po.grouped_fixed_window_powm_odd(r, x, p, m, grouping);
+  //   OR
+  // po.grouped_sliding_window_powm_odd(r, x, p, m, grouping);
+
+  cgbn_store(po._env, &(instances[instance].result), r);
+}
+
+// grouped sliding window kernel implementation using cgbn -- IMPORTANT! default grouping = 1024
+template<class params>
+__global__ void grouped_sliding_kernel_powm_odd(cgbn_error_report_t *report, typename powm_odd_t<params>::instance_t *instances, const uint32_t count, const uint32_t grouping) {
+  int32_t instance;
+
+  // decode an instance number from the blockIdx and threadIdx
+  instance=(blockIdx.x*blockDim.x + threadIdx.x)/params::TPI;
+  if(instance>=count)
+    return;
+
+  powm_odd_t<params>                 po(cgbn_report_monitor, report, instance);
+  typename powm_odd_t<params>::bn_t  r, x, p, m;
+
+  // the loads and stores can go in the class, but it seems more natural to have them
+  // here and to pass in and out bignums
+  cgbn_load(po._env, x, &(instances[instance].x));
+  cgbn_load(po._env, p, &(instances[instance].power));
+  cgbn_load(po._env, m, &(instances[instance].modulus));
+
+  // this can be either fixed_window_powm_odd or sliding_window_powm_odd.
+  // when TPI<32, fixed window runs much faster because it is less divergent, so we use it here
+  // po.grouped_fixed_window_powm_odd(r, x, p, m, grouping);
+  //   OR
+  po.grouped_sliding_window_powm_odd(r, x, p, m, grouping);
+
+  cgbn_store(po._env, &(instances[instance].result), r);
+}
+
+
 template<class params>
 void run_test(uint32_t instance_count) {
   typedef typename powm_odd_t<params>::instance_t instance_t;
@@ -430,7 +564,7 @@ void run_test(uint32_t instance_count) {
   int32_t              TPB=(params::TPB==0) ? 128 : params::TPB;    // default threads per block to 128
   int32_t              TPI=params::TPI, IPB=TPB/TPI;                // IPB is instances per block
 
-  printf("Genereating instances ...\n");
+  printf("Generating instances ...\n");
   instances=powm_odd_t<params>::generate_instances(instance_count);
 
   printf("Copying instances to the GPU ...\n");
@@ -459,6 +593,78 @@ void run_test(uint32_t instance_count) {
 
   // clean up
   free(instances);
+  CUDA_CHECK(cudaFree(gpuInstances));
+  CUDA_CHECK(cgbn_error_report_free(report));
+}
+
+template<class params>
+void run_puzzle_test(const uint32_t instance_count, const uint32_t grouping) {
+  typedef typename powm_odd_t<params>::instance_t instance_t;
+
+  instance_t          *instances, *gpuInstances;
+  cgbn_error_report_t *report;
+  int32_t              TPB=(params::TPB==0) ? 128 : params::TPB;    // default threads per block to 128
+  int32_t              TPI=params::TPI, IPB=TPB/TPI;                // IPB is instances per block
+
+  printf("Generating composite to be used in puzzles...");
+
+  // initialize private key
+  private_key priv;
+  mpz_init(priv.n);
+  mpz_init(priv.e);
+  mpz_init(priv.d);
+  mpz_init(priv.p);
+  mpz_init(priv.q);
+
+  // initialize public key
+  public_key  pub;
+  mpz_init(pub.n);
+  mpz_init(pub.e);
+
+  // now generate the keys with 4096 bits
+  generate_keys(&priv, &pub, 4096);
+
+  printf("Generating puzzle instances ...\n");
+  instances=powm_odd_t<params>::generate_puzzle_instances(instance_count, priv.n);
+
+  printf("Copying instances to the GPU ...\n");
+  CUDA_CHECK(cudaSetDevice(0));
+  CUDA_CHECK(cudaMalloc((void **)&gpuInstances, sizeof(instance_t)*instance_count));
+  CUDA_CHECK(cudaMemcpy(gpuInstances, instances, sizeof(instance_t)*instance_count, cudaMemcpyHostToDevice));
+
+  // create a cgbn_error_report for CGBN to report back errors
+  CUDA_CHECK(cgbn_error_report_alloc(&report));
+
+  printf("Running GPU kernel ...\n");
+
+  // launch kernel with blocks=ceil(instance_count/IPB) and threads=TPB
+  grouped_fixed_kernel_powm_odd<params><<<(instance_count+IPB-1)/IPB, TPB>>>(report, gpuInstances, instance_count, grouping);
+
+  // error report uses managed memory, so we sync the device (or stream) and check for cgbn errors
+  CUDA_CHECK(cudaDeviceSynchronize());
+  CGBN_CHECK(report);
+
+  // copy the instances back from gpuMemory
+  printf("Copying results back to CPU ...\n");
+  CUDA_CHECK(cudaMemcpy(instances, gpuInstances, sizeof(instance_t)*instance_count, cudaMemcpyDeviceToHost));
+
+  printf("Verifying the results ...\n");
+  powm_odd_t<params>::verify_results(instances, instance_count);
+
+  // clean up
+  free(instances);
+
+  // clear private key
+  mpz_clear(priv.n);
+  mpz_clear(priv.e);
+  mpz_clear(priv.d);
+  mpz_clear(priv.p);
+  mpz_clear(priv.q);
+
+  // clear public key
+  mpz_clear(pub.n);
+  mpz_clear(pub.e);
+
   CUDA_CHECK(cudaFree(gpuInstances));
   CUDA_CHECK(cgbn_error_report_free(report));
 }
