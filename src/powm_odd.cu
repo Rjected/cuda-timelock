@@ -233,6 +233,23 @@ class powm_odd_t {
     return instances;
   }
 
+  __host__ static instance_t generate_single_instance(const mpz_t x, const mpz_t e, const mpz_t N) {
+    instance_t instance;
+    // TODO
+
+    return instance;
+  }
+
+  __host__ static instance_t *generate_specific_instances(const mpz_t* xs, const mpz_t* es, const mpz_t* Ns, uint32_t count) {
+    instance_t *instances=(instance_t *)malloc(sizeof(instance_t)*count);
+    int         index;
+
+    for(index=0;index<count;index++) {
+      instances[index] = generate_single_instance(xs[index], es[index], Ns[index]);
+    }
+    return instances;
+  }
+
   __host__ static void verify_results(instance_t *instances, uint32_t count) {
     mpz_t x, p, m, computed, correct;
 

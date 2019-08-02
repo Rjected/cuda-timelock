@@ -9,4 +9,5 @@ While a GPU is not the best in terms of latency for each individual multiple pre
 ## Requirements
  * [GMP](https://gmplib.org)
  * [CGBN](https://github.com/NVlabs/CGBN)
+ * [Google Test Framework](https://github.com/google/googletest)
  * A graphics card
