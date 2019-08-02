@@ -233,19 +233,53 @@ class powm_odd_t {
     return instances;
   }
 
-  __host__ static instance_t generate_single_instance(const mpz_t x, const mpz_t e, const mpz_t N) {
+  __host__ static instance_t create_instance(const mpz_t x, const mpz_t e, const mpz_t N) {
     instance_t instance;
-    // TODO
+    // first, we get the number of limbs
+
+    size_t num_limbs_x = mpz_size(x);
+    size_t num_limbs_e = mpz_size(e);
+    size_t num_limbs_N = mpz_size(N);
+
+    // just have these assertions in case anyone tries to pull any funny business
+    // any one of these failing means the input is too big and we would have caused a segfault
+    // the size of instance x, e, N limbs should be params::BITS/32, so if these were not true
+    // then we would loop over them and cause a segfault.
+    assert(num_limbs_x <= params::BITS/32);
+    assert(num_limbs_e <= params::BITS/32);
+    assert(num_limbs_N <= params::BITS/32);
+
+    // start with x
+    for (int i = 0; i < num_limbs_x; ++i) {
+        // get limb i, put in x.
+        instance.x._limbs[i] = mpz_getlimbn(x, i);
+    }
+
+    // now do e
+    for (int i = 0; i < num_limbs_e; ++i) {
+        // get limb i, put in e.
+        instance.power._limbs[i] = mpz_getlimbn(e, i);
+    }
+
+    // now do N
+    for (int i = 0; i < num_limbs_N; ++i) {
+        // get limb i, put in N.
+        instance.modulus._limbs[i] = mpz_getlimbn(N, i);
+    }
+
+    // now we're going to assert that the modulus is odd, just because we don't want to create
+    // instances that would be incorrect for powm_ODD_t.
+    assert(instance.modulus._limbs[0] & 1);
 
     return instance;
   }
 
-  __host__ static instance_t *generate_specific_instances(const mpz_t* xs, const mpz_t* es, const mpz_t* Ns, uint32_t count) {
+  __host__ static instance_t *create_instances(const mpz_t* xs, const mpz_t* es, const mpz_t* Ns, uint32_t count) {
     instance_t *instances=(instance_t *)malloc(sizeof(instance_t)*count);
     int         index;
 
     for(index=0;index<count;index++) {
-      instances[index] = generate_single_instance(xs[index], es[index], Ns[index]);
+      instances[index] = create_instance(xs[index], es[index], Ns[index]);
     }
     return instances;
   }
