@@ -206,6 +206,80 @@ class powm_odd_t {
     }
   }
 
+  // this is assuming power will equal 2^t. if we actually calculated 2^t then we would have a lot of memory issues.
+  __device__ __forceinline__ void grouped_fixed_window_powm_odd(bn_t &result, const bn_t &x, const bn_t &t, const bn_t &modulus, const uint32_t &grouping) {
+
+    // First we calculate the exponent, in this case 2^grouping.
+    // Then we divide to get an index, and take the modulus to get the last exponent.
+    bn_t primary_exponent;
+    // this is 1 because 1 = 2^0, we shift grouping times so the result will be
+    // 2^0 * 2^grouping = 2^(0 + grouping) = 2^grouping
+    cgbn_set_ui32(_env, &primary_exponent, 1);
+    cgbn_shift_left(_env, &primary_exponent, grouping);
+
+    // limit = t / grouping
+    // we don't care about the result being stored in a bn_t
+    uint32_t limit = cgbn_div_ui32(_env, NULL, &t, grouping);
+
+    // final_grouping = t % grouping
+    // we don't care about the result being stored in a bn_t
+    uint32_t final_grouping = cgbn_rem_ui32(_env, NULL, &t, grouping);
+
+    // Now we take 2^final_grouping for the final exponent
+    bn_t final_exponent;
+    cgbn_set_ui32(_env, &final_exponent, 1);
+    cgbn_shift_left(_env, &final_exponent, final_grouping);
+
+    // now we do this a bunch of times
+    int index;
+    for (index = 0; index < limit; ++index) {
+      // x = x ^ primary_exponent (mod N)
+      fixed_window_powm_odd(x, x, &primary_exponent, modulus);
+    }
+
+    // and finally, the last will store the result
+    fixed_window_powm_odd(result, x, &final_exponent, modulus);
+
+    return;
+  }
+
+  // this is assuming power will equal 2^t. if we actually calculated 2^t then we would have a lot of memory issues.
+  __device__ __forceinline__ void grouped_sliding_window_powm_odd(bn_t &result, const bn_t &x, const bn_t &t, const bn_t &modulus, const uint32_t &grouping) {
+
+    // First we calculate the exponent, in this case 2^grouping.
+    // Then we divide to get an index, and take the modulus to get the last exponent.
+    bn_t primary_exponent;
+    // this is 1 because 1 = 2^0, we shift grouping times so the result will be
+    // 2^0 * 2^grouping = 2^(0 + grouping) = 2^grouping
+    cgbn_set_ui32(_env, &primary_exponent, 1);
+    cgbn_shift_left(_env, &primary_exponent, grouping);
+
+    // limit = t / grouping
+    // we don't care about the result being stored in a bn_t
+    uint32_t limit = cgbn_div_ui32(_env, NULL, &t, grouping);
+
+    // final_grouping = t % grouping
+    // we don't care about the result being stored in a bn_t
+    uint32_t final_grouping = cgbn_rem_ui32(_env, NULL, &t, grouping);
+
+    // Now we take 2^final_grouping for the final exponent
+    bn_t final_exponent;
+    cgbn_set_ui32(_env, &final_exponent, 1);
+    cgbn_shift_left(_env, &final_exponent, final_grouping);
+
+    // now we do this a bunch of times
+    int index;
+    for (index = 0; index < limit; ++index) {
+      // x = x ^ primary_exponent (mod N)
+      sliding_window_powm_odd(x, x, &primary_exponent, modulus);
+    }
+
+    // and finally, the last will store the result
+    sliding_window_powm_odd(result, x, &final_exponent, modulus);
+
+    return;
+  }
+
   __host__ static instance_t *generate_instances(uint32_t count) {
     instance_t *instances=(instance_t *)malloc(sizeof(instance_t)*count);
     int         index;
