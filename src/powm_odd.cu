@@ -22,6 +22,7 @@ IN THE SOFTWARE.
 #include <stdlib.h>
 #include <cuda.h>
 #include <gmp.h>
+#include <inttypes.h>
 #include "../include/cgbn/cgbn.h"
 #include "../include/insecure_rsa/rsa.h"
 #include "support.h"
@@ -352,31 +353,44 @@ class powm_odd_t {
     mpz_init(thirteen);
     mpz_set_ui(thirteen, 13);
 
+    mpz_t maxval;
+    mpz_init(maxval);
+    mpz_pow_ui(maxval, two, params::BITS);
+
     for(index=0;index<count;index++) {
         // create 2^whatever
         mpz_t e;
         mpz_init(e);
 
+        mpz_t rand_bn;
+        mpz_init(rand_bn);
+        mpz_set_ui(rand_bn, rand());
+
         // just alternate between our bases
         switch (index % 4) {
           case 0:
-            // e = 2 ^(random number between 1024 and b)
-            mpz_pow_ui(e, two, 1024 + (rand() % (params::BITS - 1024)));
+            // e = 2^(random number) % (2^BITS)
+            mpz_powm(e, two, rand_bn, maxval);
+            instances[index] = create_instance(two, e, N);
           case 1:
-            // e = 5 ^(random number between 1024 and 4096)
-            mpz_pow_ui(e, five, 1024 + (rand() % (params::BITS - 1024)));
+            // e = 5^(random number) % (2^BITS)
+            mpz_powm(e, five, rand_bn, maxval);
+            instances[index] = create_instance(five, e, N);
           case 2:
-            // e = 7 ^(random number between 1024 and 4096)
-            mpz_pow_ui(e, seven, 1024 + (rand() % (params::BITS - 1024)));
+            // e = 7^(random number) % (2^BITS)
+            mpz_powm(e, seven, rand_bn, maxval);
+            instances[index] = create_instance(seven, e, N);
           case 3:
-            // e = 13 ^(random number between 1024 and 4096)
-            mpz_pow_ui(e, thirteen, 1024 + (rand() % (params::BITS - 1024)));
+            // e = 13^(random number) % (2^BITS)
+            mpz_powm(e, thirteen, rand_bn, maxval);
+            instances[index] = create_instance(thirteen, e, N);
         }
 
-        instances[index] = create_instance(two, e, N);
+        mpz_clear(rand_bn);
         mpz_clear(e);
     }
 
+    mpz_clear(maxval);
     mpz_clear(two);
     mpz_clear(five);
     mpz_clear(seven);
