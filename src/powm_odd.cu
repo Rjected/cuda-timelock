@@ -220,36 +220,45 @@ class powm_odd_t {
     cgbn_set_ui32(_env, primary_exponent, 1);
     cgbn_shift_left(_env, primary_exponent, primary_exponent, grouping);
 
-    // limit = t / grouping
-    // we don't care about the result being stored in a bn_t
-    uint32_t limit = t / grouping;
+    bn_t two;
+    cgbn_set_ui32(_env, two, 2);
+    bn_t tee;
+    cgbn_set_ui32(_env, tee, t);
+    bn_t expon;
+    fixed_window_powm_odd(expon, two, tee, modulus);
+    fixed_window_powm_odd(result, x, expon, modulus);
 
-    // final_grouping = t % grouping
-    // we don't care about the result being stored in a bn_t
-    const uint32_t final_grouping = t % grouping;
 
-    bn_t one;
-    cgbn_set_ui32(_env, one, 1);
-    bn_t zero;
-    cgbn_set_ui32(_env, zero, 0);
+    /* // limit = t / grouping */
+    /* // we don't care about the result being stored in a bn_t */
+    /* uint32_t limit = t / grouping; */
 
-    // Now we take 2^final_grouping for the final exponent
-    bn_t final_exponent;
-    cgbn_set_ui32(_env, final_exponent, 1);
-    cgbn_shift_left(_env, final_exponent, final_exponent, final_grouping);
+    /* // final_grouping = t % grouping */
+    /* // we don't care about the result being stored in a bn_t */
+    /* const uint32_t final_grouping = t % grouping; */
 
-    // x is not constant so we create a mutable one
-    bn_t mut_x;
-    cgbn_set(_env, mut_x, x);
-    // now we do this a bunch of times
-    while (limit > 0) {
-      // x = x ^ primary_exponent (mod N)
-      fixed_window_powm_odd(mut_x, mut_x, primary_exponent, modulus);
-      limit--;
-    }
+    /* bn_t one; */
+    /* cgbn_set_ui32(_env, one, 1); */
+    /* bn_t zero; */
+    /* cgbn_set_ui32(_env, zero, 0); */
 
-    // and finally, the last will store the result
-    fixed_window_powm_odd(result, mut_x, final_exponent, modulus);
+    /* // Now we take 2^final_grouping for the final exponent */
+    /* bn_t final_exponent; */
+    /* cgbn_set_ui32(_env, final_exponent, 1); */
+    /* cgbn_shift_left(_env, final_exponent, final_exponent, final_grouping); */
+
+    /* // x is not constant so we create a mutable one */
+    /* bn_t mut_x; */
+    /* cgbn_set(_env, mut_x, x); */
+    /* // now we do this a bunch of times */
+    /* while (limit > 0) { */
+    /*   // x = x ^ primary_exponent (mod N) */
+    /*   fixed_window_powm_odd(mut_x, mut_x, primary_exponent, modulus); */
+    /*   limit--; */
+    /* } */
+
+    /* // and finally, the last will store the result */
+    /* fixed_window_powm_odd(result, mut_x, final_exponent, modulus); */
 
     return;
   }
@@ -333,7 +342,7 @@ class powm_odd_t {
   // This way we can test that a^2^t (mod N), calculated from cgbn, = a^(2^t (mod phi(N)) (mod N),
   // calculated from gmp.
   // Either that, or we just let GMP do all of the work
-  __host__ static instance_t *generate_puzzle_instances(uint32_t count, const mpz_t N) {
+  __host__ static instance_t *generate_puzzle_instances(uint32_t count, const uint32_t t, const mpz_t N) {
     instance_t *instances=(instance_t *)malloc(sizeof(instance_t)*count);
     int         index;
 
@@ -362,31 +371,25 @@ class powm_odd_t {
         mpz_t e;
         mpz_init(e);
 
-        mpz_t rand_bn;
-        mpz_init(rand_bn);
-        mpz_set_ui(rand_bn, rand());
+        mpz_t tvbn;
+        mpz_init(tvbn);
+        mpz_set_ui(tvbn, t);
 
+            mpz_powm(e, two, tvbn, maxval);
         // just alternate between our bases
         switch (index % 4) {
           case 0:
-            // e = 2^(random number) % (2^BITS)
-            mpz_powm(e, two, rand_bn, maxval);
+            // base = 2
             instances[index] = create_instance(two, e, N);
           case 1:
-            // e = 5^(random number) % (2^BITS)
-            mpz_powm(e, five, rand_bn, maxval);
             instances[index] = create_instance(five, e, N);
           case 2:
-            // e = 7^(random number) % (2^BITS)
-            mpz_powm(e, seven, rand_bn, maxval);
             instances[index] = create_instance(seven, e, N);
           case 3:
-            // e = 13^(random number) % (2^BITS)
-            mpz_powm(e, thirteen, rand_bn, maxval);
             instances[index] = create_instance(thirteen, e, N);
         }
 
-        mpz_clear(rand_bn);
+        mpz_clear(tvbn);
         mpz_clear(e);
     }
 
@@ -639,7 +642,7 @@ void run_puzzle_test(const uint32_t instance_count, const uint32_t grouping, con
   generate_keys(&priv, &pub, 4096);
 
   printf("Generating puzzle instances ...\n");
-  instances=powm_odd_t<params>::generate_puzzle_instances(instance_count, priv.n);
+  instances=powm_odd_t<params>::generate_puzzle_instances(instance_count, time_value, priv.n);
 
   printf("Copying instances to the GPU ...\n");
   CUDA_CHECK(cudaSetDevice(0));
