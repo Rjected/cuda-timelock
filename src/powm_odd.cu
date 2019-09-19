@@ -467,6 +467,14 @@ class powm_odd_t {
       to_mpz(m, instances[index].modulus._limbs, params::BITS/32);
       to_mpz(computed, instances[index].result._limbs, params::BITS/32);
 
+      size_t instance_x_size = mpz_sizeinbase(x, 2);
+      size_t instance_p_size = mpz_sizeinbase(p, 2);
+      size_t instance_m_size = mpz_sizeinbase(m, 2);
+      size_t instance_r_size = mpz_sizeinbase(computed, 2);
+      printf("Instance %d: Number of bits in x: %d", index, instance_x_size);
+      printf("Instance %d: Number of bits in p: %d", index, instance_p_size);
+      printf("Instance %d: Number of bits in m: %d", index, instance_m_size);
+      printf("Instance %d: Number of bits in r: %d", index, instance_r_size);
       mpz_powm(correct, x, p, m);
       if(mpz_cmp(correct, computed)!=0) {
         printf("gpu inverse kernel failed on instance %d\n", index);
@@ -675,8 +683,18 @@ void run_puzzle_test(const uint32_t instance_count, const uint32_t time_value) {
   printf("Copying results back to CPU ...\n");
   CUDA_CHECK(cudaMemcpy(instances, gpuInstances, sizeof(instance_t)*instance_count, cudaMemcpyDeviceToHost));
 
+  // declaring argument of time()
+  my_time = time(NULL);
+  // ctime() used to give the present time
+  printf("Verify Start Time: %s", ctime(&my_time));
+
   printf("Verifying the results ...\n");
   powm_odd_t<params>::verify_results(instances, instance_count);
+
+  // declaring argument of time()
+  my_time = time(NULL);
+  // ctime() used to give the present time
+  printf("Verify Stop Time: %s", ctime(&my_time));
 
   // clean up
   free(instances);
