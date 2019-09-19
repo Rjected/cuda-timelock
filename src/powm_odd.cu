@@ -371,17 +371,24 @@ class powm_odd_t {
         mpz_init(e);
 
         mpz_pow_ui(e, two, t);
+
+        // now from_mpz that
+        from_mpz(e, instances[index].power._limbs, params::BITS/32);
+        mpz_t mod;
+        mpz_init_set(mod, N);
+
+        from_mpz(mod, instances[index].modulus._limbs, params::BITS/32);
         // just alternate between our bases
         switch (index % 4) {
           case 0:
             // base = 2
-            instances[index] = create_instance(two, e, N);
+            from_mpz(two, instances[index].x._limbs, params::BITS/32);
           case 1:
-            instances[index] = create_instance(five, e, N);
+            from_mpz(five, instances[index].x._limbs, params::BITS/32);
           case 2:
-            instances[index] = create_instance(seven, e, N);
+            from_mpz(seven, instances[index].x._limbs, params::BITS/32);
           case 3:
-            instances[index] = create_instance(thirteen, e, N);
+            from_mpz(thirteen, instances[index].x._limbs, params::BITS/32);
         }
 
         mpz_clear(e);
