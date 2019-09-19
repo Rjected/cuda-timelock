@@ -615,7 +615,7 @@ void run_test(uint32_t instance_count) {
 }
 
 template<class params>
-void run_puzzle_test(const uint32_t instance_count, const uint32_t grouping, const uint32_t time_value) {
+void run_puzzle_test(const uint32_t instance_count, const uint32_t time_value) {
   typedef typename powm_odd_t<params>::instance_t instance_t;
 
   instance_t          *instances, *gpuInstances;
@@ -660,7 +660,7 @@ void run_puzzle_test(const uint32_t instance_count, const uint32_t grouping, con
   printf("Running GPU kernel ...\n");
 
   // launch kernel with blocks=ceil(instance_count/IPB) and threads=TPB
-  grouped_fixed_kernel_powm_odd<params><<<(instance_count+IPB-1)/IPB, TPB>>>(report, gpuInstances, instance_count, grouping, time_value);
+  kernel_powm_odd<params><<<(instance_count+IPB-1)/IPB, TPB>>>(report, gpuInstances, instance_count);
 
   // error report uses managed memory, so we sync the device (or stream) and check for cgbn errors
   CUDA_CHECK(cudaDeviceSynchronize());
