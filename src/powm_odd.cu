@@ -471,14 +471,14 @@ class powm_odd_t {
       size_t instance_p_size = mpz_sizeinbase(p, 2);
       size_t instance_m_size = mpz_sizeinbase(m, 2);
       size_t instance_r_size = mpz_sizeinbase(computed, 2);
-      printf("Instance %d: Number of bits in x: %d\n", index, instance_x_size);
-      printf("Instance %d: Number of bits in p: %d\n", index, instance_p_size);
-      printf("Instance %d: Number of bits in m: %d\n", index, instance_m_size);
-      printf("Instance %d: Number of bits in r: %d\n", index, instance_r_size);
+      printf("Instance %d: Number of bits in x: %lu\n", index, instance_x_size);
+      printf("Instance %d: Number of bits in p: %lu\n", index, instance_p_size);
+      printf("Instance %d: Number of bits in m: %lu\n", index, instance_m_size);
+      printf("Instance %d: Number of bits in r: %lu\n", index, instance_r_size);
       mpz_powm(correct, x, p, m);
       if(mpz_cmp(correct, computed)!=0) {
         printf("gpu inverse kernel failed on instance %d\n", index);
-        return;
+        // return;
       }
     }
     printf("Number of powm's computed: %d\n", count);
