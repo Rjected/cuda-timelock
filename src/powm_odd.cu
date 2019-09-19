@@ -364,18 +364,13 @@ class powm_odd_t {
 
     mpz_t maxval;
     mpz_init(maxval);
-    mpz_pow_ui(maxval, two, params::BITS);
 
     for(index=0;index<count;index++) {
         // create 2^whatever
         mpz_t e;
         mpz_init(e);
 
-        mpz_t tvbn;
-        mpz_init(tvbn);
-        mpz_set_ui(tvbn, t);
-
-            mpz_powm(e, two, tvbn, maxval);
+        mpz_pow_ui(e, two, t);
         // just alternate between our bases
         switch (index % 4) {
           case 0:
@@ -389,7 +384,6 @@ class powm_odd_t {
             instances[index] = create_instance(thirteen, e, N);
         }
 
-        mpz_clear(tvbn);
         mpz_clear(e);
     }
 
