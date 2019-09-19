@@ -17,6 +17,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 IN THE SOFTWARE.
 ***/
 
+#include <time.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -619,7 +620,7 @@ void run_puzzle_test(const uint32_t instance_count, const uint32_t grouping, con
   int32_t              TPB=(params::TPB==0) ? 128 : params::TPB;    // default threads per block to 128
   int32_t              TPI=params::TPI, IPB=TPB/TPI;                // IPB is instances per block
 
-  printf("Generating composite to be used in puzzles...");
+  printf("Generating composite to be used in puzzles...\n");
 
   // initialize private key
   private_key priv;
@@ -648,6 +649,11 @@ void run_puzzle_test(const uint32_t instance_count, const uint32_t grouping, con
   // create a cgbn_error_report for CGBN to report back errors
   CUDA_CHECK(cgbn_error_report_alloc(&report));
 
+  // declaring argument of time()
+  time_t my_time = time(NULL);
+  // ctime() used to give the present time
+  printf("Start Time: %s", ctime(&my_time));
+
   printf("Running GPU kernel ...\n");
 
   // launch kernel with blocks=ceil(instance_count/IPB) and threads=TPB
@@ -656,6 +662,11 @@ void run_puzzle_test(const uint32_t instance_count, const uint32_t grouping, con
   // error report uses managed memory, so we sync the device (or stream) and check for cgbn errors
   CUDA_CHECK(cudaDeviceSynchronize());
   CGBN_CHECK(report);
+
+  // declaring argument of time()
+  my_time = time(NULL);
+  // ctime() used to give the present time
+  printf("Stop Time: %s", ctime(&my_time));
 
   // copy the instances back from gpuMemory
   printf("Copying results back to CPU ...\n");
