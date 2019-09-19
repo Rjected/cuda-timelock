@@ -208,8 +208,8 @@ class powm_odd_t {
     }
   }
 
-  // this is assuming power will equal 2^t. if we actually calculated 2^t then we would have a lot of memory issues.
-  __device__ __forceinline__ void grouped_fixed_window_powm_odd(bn_t &result, const bn_t &x, const bn_t &t, const bn_t &modulus, const uint32_t grouping) {
+  // this is assuming power will equal 2^t. then we would have a lot of memory issues.
+  __device__ __forceinline__ void grouped_fixed_window_powm_odd(bn_t &result, const bn_t &x, const uint32_t t, const bn_t &modulus, const uint32_t grouping) {
 
     // First we calculate the exponent, in this case 2^grouping.
     // Then we divide to get an index, and take the modulus to get the last exponent.
@@ -221,12 +221,11 @@ class powm_odd_t {
 
     // limit = t / grouping
     // we don't care about the result being stored in a bn_t
-    bn_t limit;
-    cgbn_div_ui32(_env, limit, t, grouping);
+    uint32_t limit = t / grouping;
 
     // final_grouping = t % grouping
     // we don't care about the result being stored in a bn_t
-    const uint32_t final_grouping = cgbn_rem_ui32(_env, t, grouping);
+    const uint32_t final_grouping = t % grouping;
 
     bn_t one;
     cgbn_set_ui32(_env, one, 1);
@@ -242,10 +241,10 @@ class powm_odd_t {
     bn_t mut_x;
     cgbn_set(_env, mut_x, x);
     // now we do this a bunch of times
-    while (!cgbn_equals(_env, limit, zero)) {
+    while (limit > 0) {
       // x = x ^ primary_exponent (mod N)
       fixed_window_powm_odd(mut_x, mut_x, primary_exponent, modulus);
-      cgbn_sub(_env, limit, limit, one);
+      limit--;
     }
 
     // and finally, the last will store the result
@@ -514,7 +513,7 @@ __global__ void kernel_powm_odd(cgbn_error_report_t *report, typename powm_odd_t
 
 // grouped fixed kernel implementation using cgbn -- IMPORTANT! default grouping = 1024
 template<class params>
-__global__ void grouped_fixed_kernel_powm_odd(cgbn_error_report_t *report, typename powm_odd_t<params>::instance_t *instances, const uint32_t count, const uint32_t grouping) {
+__global__ void grouped_fixed_kernel_powm_odd(cgbn_error_report_t *report, typename powm_odd_t<params>::instance_t *instances, const uint32_t count, const uint32_t grouping, const uint32_t time_value) {
   int32_t instance;
 
   // decode an instance number from the blockIdx and threadIdx
@@ -533,7 +532,7 @@ __global__ void grouped_fixed_kernel_powm_odd(cgbn_error_report_t *report, typen
 
   // this can be either fixed_window_powm_odd or sliding_window_powm_odd.
   // when TPI<32, fixed window runs much faster because it is less divergent, so we use it here
-  po.grouped_fixed_window_powm_odd(r, x, p, m, grouping);
+  po.grouped_fixed_window_powm_odd(r, x, time_value, m, grouping);
   //   OR
   // po.grouped_sliding_window_powm_odd(r, x, p, m, grouping);
 
@@ -612,7 +611,7 @@ void run_test(uint32_t instance_count) {
 }
 
 template<class params>
-void run_puzzle_test(const uint32_t instance_count, const uint32_t grouping) {
+void run_puzzle_test(const uint32_t instance_count, const uint32_t grouping, const uint32_t time_value) {
   typedef typename powm_odd_t<params>::instance_t instance_t;
 
   instance_t          *instances, *gpuInstances;
@@ -652,7 +651,7 @@ void run_puzzle_test(const uint32_t instance_count, const uint32_t grouping) {
   printf("Running GPU kernel ...\n");
 
   // launch kernel with blocks=ceil(instance_count/IPB) and threads=TPB
-  grouped_fixed_kernel_powm_odd<params><<<(instance_count+IPB-1)/IPB, TPB>>>(report, gpuInstances, instance_count, grouping);
+  grouped_fixed_kernel_powm_odd<params><<<(instance_count+IPB-1)/IPB, TPB>>>(report, gpuInstances, instance_count, time_value, grouping);
 
   // error report uses managed memory, so we sync the device (or stream) and check for cgbn errors
   CUDA_CHECK(cudaDeviceSynchronize());

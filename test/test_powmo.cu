@@ -4,6 +4,6 @@ int main() {
   typedef powm_params_t<8, 1024, 5> params;
   run_test<params>(128);
   typedef powm_params_t<16, 4096, 5> params_puzzle;
-  run_puzzle_test<params_puzzle>(100, 1024);
+  run_puzzle_test<params_puzzle>(100, 1024, 25000);
   return 0;
 }
