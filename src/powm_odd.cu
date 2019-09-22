@@ -409,6 +409,10 @@ class powm_odd_t {
         mpz_init_set(mod, N);
 
         from_mpz(mod, instances[index].modulus._limbs, params::BITS/32);
+        gmp_printf("\nmpz modulus before or-ing \n\t%Zd\n", mod);
+        instances[index].modulus._limbs[0] |= 1;
+        printf("Odd? %d\n", instances[0].modulus._limbs[0] | 1);
+
         // just alternate between our bases
         switch (index % 4) {
           case 0:
@@ -451,6 +455,10 @@ class powm_odd_t {
 
     // now from_mpz that
     from_mpz(mod, instances[0].modulus._limbs, params::BITS/32);
+    gmp_printf("\nmpz modulus before or-ing \n\t%Zd\n", mod);
+    printf("Odd? %d\n", instances[0].modulus._limbs[0] | 1);
+    instances[0].modulus._limbs[0] |= 1;
+
     from_mpz(e, instances[0].power._limbs, params::BITS/32);
     from_mpz(base, instances[0].x._limbs, params::BITS/32);
 
