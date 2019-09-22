@@ -228,7 +228,6 @@ class powm_odd_t {
     fixed_window_powm_odd(primary_exponent, two, grp, modulus);
     /* fixed_window_powm_odd(result, x, expon, modulus); */
 
-
     // limit = t / grouping
     // we don't care about the result being stored in a bn_t
     uint32_t limit = t / grouping;
