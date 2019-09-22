@@ -9,6 +9,8 @@ int main() {
   /* run_simple_test<params_puzzle>(2, 15000); */
   /* run_simple_test<params_puzzle>(2, 15000); */
 
+  printf(" ==================== SIMPLE TESTS ====================")
+
   run_simple_test<params_puzzle>(2, 2);
   run_simple_test<params_puzzle>(2, 4);
   run_simple_test<params_puzzle>(2, 8);
@@ -26,9 +28,23 @@ int main() {
   /* run_simple_test<params_puzzle>(2, 32768); */
   /* run_simple_test<params_puzzle>(2, 65536); */
 
+  printf(" ==================== THROUGHPUT TESTS 1 ====================")
+
   run_puzzle_test<params_puzzle>(1, 25000);
   run_puzzle_test<params_puzzle>(10, 25000);
   run_puzzle_test<params_puzzle>(100, 25000);
   run_puzzle_test<params_puzzle>(1000, 25000);
+  run_puzzle_test<params_puzzle>(10000, 25000);
+
+  printf(" ==================== THROUGHPUT TESTS 2 ====================")
+
+  run_puzzle_test<params_puzzle>(1, 5000);
+  run_puzzle_test<params_puzzle>(10, 5000);
+  run_puzzle_test<params_puzzle>(100, 5000);
+  run_puzzle_test<params_puzzle>(1000, 5000);
+  run_puzzle_test<params_puzzle>(10000, 5000);
+  run_puzzle_test<params_puzzle>(100000, 5000);
+
+  printf(" ==================== DONE ====================")
   return 0;
 }
