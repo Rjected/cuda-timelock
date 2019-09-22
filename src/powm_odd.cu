@@ -259,13 +259,12 @@ class powm_odd_t {
     }
 
     // x is not constant so we create a mutable one
-    cgbn_set_ui32(_env, result, 2);
     cgbn_set(_env, result, x);
 
     uint32_t mut_t = t;
     while(mut_t > 1) {
-        fixed_window_powm_odd(result, result, two, modulus);
-        mut_t--;
+        cgbn_modular_power(_env, result, result, two, modulus);
+        mut_t = mut_t - 1;
     }
     // now we do this a bunch of times
     /* while (limit > 0) { */
