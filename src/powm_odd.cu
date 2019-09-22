@@ -223,6 +223,14 @@ class powm_odd_t {
 
     bn_t two;
     cgbn_set_ui32(_env, two, 2);
+
+    if (t < grouping) {
+        bn_t mut_x;
+        cgbn_set(_env, mut_x, x);
+        fixed_window_powm_odd(result, mut_x, p, modulus);
+        return
+    }
+
     bn_t grp;
     cgbn_set_ui32(_env, grp, grouping);
     fixed_window_powm_odd(primary_exponent, two, grp, modulus);

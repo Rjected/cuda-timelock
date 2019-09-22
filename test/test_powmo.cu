@@ -22,9 +22,9 @@ int main() {
   run_simple_test<params_puzzle>(2, 2048);
   run_simple_test<params_puzzle>(2, 4096);
   run_simple_test<params_puzzle>(2, 8192);
-  run_simple_test<params_puzzle>(2, 16384);
-  run_simple_test<params_puzzle>(2, 32768);
-  run_simple_test<params_puzzle>(2, 65536);
+  /* run_simple_test<params_puzzle>(2, 16384); */
+  /* run_simple_test<params_puzzle>(2, 32768); */
+  /* run_simple_test<params_puzzle>(2, 65536); */
 
   /* run_puzzle_test<params_puzzle>(100, 15000); */
   return 0;
