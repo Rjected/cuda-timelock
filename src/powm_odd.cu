@@ -652,6 +652,7 @@ void run_simple_test(const uint32_t a, const uint32_t time_value) {
   // now generate the keys with 4096 bits
   generate_keys(&priv, &pub, 4096);
 
+  printf("\nRunning Test with a = %d, t = %d\n", a, time_value);
   printf("Generating puzzle instances ...\n");
   instances=powm_odd_t<params>::generate_single_puzzle_instance(a, time_value, priv.n);
 
@@ -726,6 +727,7 @@ void run_puzzle_test(const uint32_t instance_count, const uint32_t time_value) {
   int32_t              TPB=(params::TPB==0) ? 128 : params::TPB;    // default threads per block to 128
   int32_t              TPI=params::TPI, IPB=TPB/TPI;                // IPB is instances per block
 
+  printf("\nRunning %d tests with t = %d\n", instance_count, time_value);
   printf("Generating composite to be used in puzzles...\n");
 
   // initialize private key
