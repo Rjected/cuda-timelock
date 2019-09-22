@@ -228,7 +228,7 @@ class powm_odd_t {
         bn_t mut_x;
         cgbn_set(_env, mut_x, x);
         fixed_window_powm_odd(result, mut_x, p, modulus);
-        return
+        return;
     }
 
     bn_t grp;
