@@ -212,78 +212,81 @@ class powm_odd_t {
   // this is assuming power will equal 2^t. then we would have a lot of memory issues.
   __device__ __forceinline__ void grouped_fixed_window_powm_odd(bn_t &result, const bn_t &x, const bn_t &p, const bn_t &modulus, const uint32_t t) {
 
-    const uint32_t grouping = 1024;
-    // First we calculate the exponent, in this case 2^grouping.
-    // Then we divide to get an index, and take the modulus to get the last exponent.
-    bn_t primary_exponent;
-    // this is 1 because 1 = 2^0, we shift grouping times so the result will be
-    // 2^0 * 2^grouping = 2^(0 + grouping) = 2^grouping
-    cgbn_set_ui32(_env, primary_exponent, 1);
-    cgbn_shift_left(_env, primary_exponent, primary_exponent, grouping);
+    /* const uint32_t grouping = 1024; */
+    /* // First we calculate the exponent, in this case 2^grouping. */
+    /* // Then we divide to get an index, and take the modulus to get the last exponent. */
+    /* bn_t primary_exponent; */
+    /* // this is 1 because 1 = 2^0, we shift grouping times so the result will be */
+    /* // 2^0 * 2^grouping = 2^(0 + grouping) = 2^grouping */
+    /* cgbn_set_ui32(_env, primary_exponent, 1); */
+    /* cgbn_shift_left(_env, primary_exponent, primary_exponent, grouping); */
 
-    bn_t two;
-    cgbn_set_ui32(_env, two, 2);
+      // really fast?
 
-    /* if (t == 0) { */
-    /*     cgbn_set_ui32(_env, result, 1); */
-    /*     return; */
-    /* } */
+    /* bn_t two; */
+    /* cgbn_set_ui32(_env, two, 2); */
+
+    if (t == 0) {
+        cgbn_set_ui32(_env, result, 1);
+        return;
+    }
 
     /* uint32_t mut_t = t; */
-    /* cgbn_set(_env, result, x); */
+    cgbn_set(_env, result, x);
+      cgbn_modular_power(_env, result, result, p, modulus);
     /* while(mut_t > 0) { */
     /*     cgbn_modular_power(_env, result, result, two, modulus); */
     /*     mut_t = mut_t - 1; */
     /* } */
 
-    if (t < grouping) {
-        bn_t mut_x;
-        cgbn_set(_env, mut_x, x);
-        cgbn_modular_power(_env, result, mut_x, p, modulus);
-        return;
-    }
+    /* if (t < grouping) { */
+    /*     bn_t mut_x; */
+    /*     cgbn_set(_env, mut_x, x); */
+    /*     cgbn_modular_power(_env, result, mut_x, p, modulus); */
+    /*     return; */
+    /* } */
 
-    bn_t grp;
-    cgbn_set_ui32(_env, grp, grouping);
-    cgbn_modular_power(_env, primary_exponent, two, grp, modulus);
+    /* bn_t grp; */
+    /* cgbn_set_ui32(_env, grp, grouping); */
+    /* cgbn_modular_power(_env, primary_exponent, two, grp, modulus); */
 
-    // limit = t / grouping
-    // we don't care about the result being stored in a bn_t
-    uint32_t limit = t / grouping;
+    /* // limit = t / grouping */
+    /* // we don't care about the result being stored in a bn_t */
+    /* uint32_t limit = t / grouping; */
 
-    // final_grouping = t % grouping
-    // we don't care about the result being stored in a bn_t
-    const uint32_t final_grouping = t % grouping;
+    /* // final_grouping = t % grouping */
+    /* // we don't care about the result being stored in a bn_t */
+    /* const uint32_t final_grouping = t % grouping; */
 
-    bn_t one;
-    cgbn_set_ui32(_env, one, 1);
-    bn_t zero;
-    cgbn_set_ui32(_env, zero, 0);
+    /* bn_t one; */
+    /* cgbn_set_ui32(_env, one, 1); */
+    /* bn_t zero; */
+    /* cgbn_set_ui32(_env, zero, 0); */
 
-    // Now we take 2^final_grouping for the final exponent
-    bn_t final_exponent;
-    cgbn_set_ui32(_env, final_exponent, 1);
-    cgbn_shift_left(_env, final_exponent, final_exponent, final_grouping);
+    /* // Now we take 2^final_grouping for the final exponent */
+    /* bn_t final_exponent; */
+    /* cgbn_set_ui32(_env, final_exponent, 1); */
+    /* cgbn_shift_left(_env, final_exponent, final_exponent, final_grouping); */
 
-    // x is not constant so we create a mutable one
+    /* // x is not constant so we create a mutable one */
 
-    bn_t mut_x;
-    cgbn_set(_env, mut_x, x);
+    /* bn_t mut_x; */
+    /* cgbn_set(_env, mut_x, x); */
 
-    // now we do this a bunch of times
-    while (limit > 0) {
-      // x = x ^ primary_exponent (mod N)
-      cgbn_modular_power(_env, mut_x, mut_x, primary_exponent, modulus);
-      limit--;
-    }
+    /* // now we do this a bunch of times */
+    /* while (limit > 0) { */
+    /*   // x = x ^ primary_exponent (mod N) */
+    /*   cgbn_modular_power(_env, mut_x, mut_x, primary_exponent, modulus); */
+    /*   limit--; */
+    /* } */
 
-    if (final_grouping > 0) {
-        // and finally, the last will store the result
-        cgbn_modular_power(_env, result, mut_x, final_exponent, modulus);
-    } else {
-        // raise to the first power
-        cgbn_modular_power(_env, result, mut_x, one, modulus);
-    }
+    /* if (final_grouping > 0) { */
+    /*     // and finally, the last will store the result */
+    /*     cgbn_modular_power(_env, result, mut_x, final_exponent, modulus); */
+    /* } else { */
+    /*     // raise to the first power */
+    /*     cgbn_modular_power(_env, result, mut_x, one, modulus); */
+    /* } */
 
     return;
   }
