@@ -262,7 +262,7 @@ class powm_odd_t {
     cgbn_set(_env, result, x);
 
     uint32_t mut_t = t;
-    while(mut_t > 1) {
+    while(mut_t > 0) {
         cgbn_modular_power(_env, result, result, two, modulus);
         mut_t = mut_t - 1;
     }
