@@ -456,6 +456,12 @@ class powm_odd_t {
       printf("Instance %d: Number of bits in m: %lu\n", index, instance_m_size);
       printf("Instance %d: Number of bits in r: %lu\n", index, instance_r_size);
       printf("Instance %d: Number of bits in c: %lu\n", index, instance_c_size);
+      gmp_printf("x is an mpz \n\t%Zd\n", x);
+      gmp_printf("p is an mpz \n\t%Zd\n", p);
+      gmp_printf("m is an mpz \n\t%Zd\n", m);
+      gmp_printf("r is an mpz \n\t%Zd\n", computed);
+      gmp_printf("c is an mpz \n\t%Zd\n", correct);
+
       if(mpz_cmp(correct, computed)!=0) {
         /* printf("gpu inverse kernel failed on instance %d\n", index); */
           wrong++;
