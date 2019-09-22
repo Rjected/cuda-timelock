@@ -221,26 +221,28 @@ class powm_odd_t {
     /* cgbn_set_ui32(_env, primary_exponent, 1); */
     /* cgbn_shift_left(_env, primary_exponent, primary_exponent, grouping); */
 
-      // really fast?
-
-    bn_t two;
-    cgbn_set_ui32(_env, two, 2);
 
     if (t == 0) {
         cgbn_set_ui32(_env, result, 1);
         return;
     }
 
-    uint32_t mut_t = t;
-    cgbn_set(_env, result, x);
-    bn_t tentwentyfour;
-    cgbn_set_ui32(_env, tentwentyfour, 1024);
-    cgbn_modular_power(_env, two, two, tentwentyfour, modulus);
-      /* cgbn_modular_power(_env, result, result, p, modulus); */
-    while(mut_t > 0) {
-        cgbn_modular_power(_env, result, result, two, modulus);
-        mut_t = mut_t - 1024;
-    }
+    // really fast?
+    cgbn_modular_power(_env, result, x, p, modulus);
+
+    /* bn_t two; */
+    /* cgbn_set_ui32(_env, two, 2); */
+
+    /* uint32_t mut_t = t; */
+    /* cgbn_set(_env, result, x); */
+    /* bn_t tentwentyfour; */
+    /* cgbn_set_ui32(_env, tentwentyfour, 1024); */
+    /* cgbn_modular_power(_env, two, two, tentwentyfour, modulus); */
+    /*   /1* cgbn_modular_power(_env, result, result, p, modulus); *1/ */
+    /* while(mut_t > 0) { */
+    /*     cgbn_modular_power(_env, result, result, two, modulus); */
+    /*     mut_t = mut_t - 1024; */
+    /* } */
 
     /* if (t < grouping) { */
     /*     bn_t mut_x; */
@@ -396,6 +398,10 @@ class powm_odd_t {
     mpz_t maxval;
     mpz_init(maxval);
 
+    mpz_t mod;
+    mpz_init_set(mod, N);
+    gmp_printf("\nmpz modulus before or-ing \n\t%Zd\n", mod);
+    // instances[index].modulus._limbs[0] |= 1;
     for(index=0;index<count;index++) {
         // create 2^whatever
         mpz_t e;
@@ -405,13 +411,7 @@ class powm_odd_t {
 
         // now from_mpz that
         from_mpz(e, instances[index].power._limbs, params::BITS/32);
-        mpz_t mod;
-        mpz_init_set(mod, N);
-
         from_mpz(mod, instances[index].modulus._limbs, params::BITS/32);
-        gmp_printf("\nmpz modulus before or-ing \n\t%Zd\n", mod);
-        instances[index].modulus._limbs[0] |= 1;
-        printf("Odd? %d\n", instances[0].modulus._limbs[0] | 1);
 
         // just alternate between our bases
         switch (index % 4) {
@@ -426,9 +426,9 @@ class powm_odd_t {
             from_mpz(thirteen, instances[index].x._limbs, params::BITS/32);
         }
 
-        mpz_clear(mod);
         mpz_clear(e);
     }
+    mpz_clear(mod);
 
     mpz_clear(maxval);
     mpz_clear(two);
