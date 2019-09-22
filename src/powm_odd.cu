@@ -391,6 +391,7 @@ class powm_odd_t {
             from_mpz(thirteen, instances[index].x._limbs, params::BITS/32);
         }
 
+        mpz_clear(mod);
         mpz_clear(e);
     }
 
@@ -399,6 +400,32 @@ class powm_odd_t {
     mpz_clear(five);
     mpz_clear(seven);
     mpz_clear(thirteen);
+    return instances;
+  }
+
+  __host__ static instance_t *generate_single_puzzle_instance(const uint32_t a, const uint32_t t, const mpz_t N) {
+    instance_t *instances=(instance_t *)malloc(sizeof(instance_t));
+
+    mpz_t base; // a
+    mpz_init(base);
+    mpz_set_ui(base, a);
+
+    // create a^whatever
+    mpz_t e;
+    mpz_init(e);
+    mpz_pow_ui(e, base, t);
+
+    mpz_t mod;
+    mpz_init_set(mod, N);
+
+    // now from_mpz that
+    from_mpz(mod, instances[0].modulus._limbs, params::BITS/32);
+    from_mpz(e, instances[0].power._limbs, params::BITS/32);
+    from_mpz(base, instances[0].x._limbs, params::BITS/32);
+
+    mpz_clear(e);
+    mpz_clear(mod);
+    mpz_clear(base);
     return instances;
   }
 
@@ -577,6 +604,99 @@ void run_test(uint32_t instance_count) {
 
   // clean up
   free(instances);
+  CUDA_CHECK(cudaFree(gpuInstances));
+  CUDA_CHECK(cgbn_error_report_free(report));
+}
+
+template<class params>
+void run_simple_test(const uint32_t a, const uint32_t time_value) {
+  typedef typename powm_odd_t<params>::instance_t instance_t;
+
+  instance_t          *instances, *gpuInstances;
+  cgbn_error_report_t *report;
+  int32_t              TPB=(params::TPB==0) ? 128 : params::TPB;    // default threads per block to 128
+  int32_t              TPI=params::TPI, IPB=TPB/TPI;                // IPB is instances per block
+
+  printf("Generating composite to be used in puzzles...\n");
+  const uint32_t instance_count = 1;
+
+  // initialize private key
+  private_key priv;
+  mpz_init(priv.n);
+  mpz_init(priv.e);
+  mpz_init(priv.d);
+  mpz_init(priv.p);
+  mpz_init(priv.q);
+
+  // initialize public key
+  public_key  pub;
+  mpz_init(pub.n);
+  mpz_init(pub.e);
+
+  // now generate the keys with 4096 bits
+  generate_keys(&priv, &pub, 4096);
+
+  printf("Generating puzzle instances ...\n");
+  instances=powm_odd_t<params>::generate_single_puzzle_instance(a, time_value, priv.n);
+
+  printf("Copying instances to the GPU ...\n");
+  CUDA_CHECK(cudaSetDevice(0));
+  CUDA_CHECK(cudaMalloc((void **)&gpuInstances, sizeof(instance_t)*instance_count));
+  CUDA_CHECK(cudaMemcpy(gpuInstances, instances, sizeof(instance_t)*instance_count, cudaMemcpyHostToDevice));
+
+  // create a cgbn_error_report for CGBN to report back errors
+  CUDA_CHECK(cgbn_error_report_alloc(&report));
+
+  // declaring argument of time()
+  time_t my_time = time(NULL);
+  // ctime() used to give the present time
+  printf("Start Time: %s", ctime(&my_time));
+
+  printf("Running GPU kernel ...\n");
+
+  // launch kernel with blocks=ceil(instance_count/IPB) and threads=TPB
+  grouped_fixed_kernel_powm_odd<params><<<(instance_count+IPB-1)/IPB, TPB>>>(report, gpuInstances, instance_count, time_value);
+
+  // error report uses managed memory, so we sync the device (or stream) and check for cgbn errors
+  CUDA_CHECK(cudaDeviceSynchronize());
+  CGBN_CHECK(report);
+
+  // declaring argument of time()
+  my_time = time(NULL);
+  // ctime() used to give the present time
+  printf("Stop Time: %s", ctime(&my_time));
+
+  // copy the instances back from gpuMemory
+  printf("Copying results back to CPU ...\n");
+  CUDA_CHECK(cudaMemcpy(instances, gpuInstances, sizeof(instance_t)*instance_count, cudaMemcpyDeviceToHost));
+
+  // declaring argument of time()
+  my_time = time(NULL);
+  // ctime() used to give the present time
+  printf("Verify Start Time: %s", ctime(&my_time));
+
+  printf("Verifying the results ...\n");
+  powm_odd_t<params>::verify_results(instances, instance_count);
+
+  // declaring argument of time()
+  my_time = time(NULL);
+  // ctime() used to give the present time
+  printf("Verify Stop Time: %s", ctime(&my_time));
+
+  // clean up
+  free(instances);
+
+  // clear private key
+  mpz_clear(priv.n);
+  mpz_clear(priv.e);
+  mpz_clear(priv.d);
+  mpz_clear(priv.p);
+  mpz_clear(priv.q);
+
+  // clear public key
+  mpz_clear(pub.n);
+  mpz_clear(pub.e);
+
   CUDA_CHECK(cudaFree(gpuInstances));
   CUDA_CHECK(cgbn_error_report_free(report));
 }
