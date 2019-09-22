@@ -223,21 +223,24 @@ class powm_odd_t {
 
       // really fast?
 
-    /* bn_t two; */
-    /* cgbn_set_ui32(_env, two, 2); */
+    bn_t two;
+    cgbn_set_ui32(_env, two, 2);
 
     if (t == 0) {
         cgbn_set_ui32(_env, result, 1);
         return;
     }
 
-    /* uint32_t mut_t = t; */
+    uint32_t mut_t = t;
     cgbn_set(_env, result, x);
-      cgbn_modular_power(_env, result, result, p, modulus);
-    /* while(mut_t > 0) { */
-    /*     cgbn_modular_power(_env, result, result, two, modulus); */
-    /*     mut_t = mut_t - 1; */
-    /* } */
+    bn_t tentwentyfour;
+    cgbn_set_ui32(_env, tentwentyfour, 1024);
+    cgbn_modular_power(_env, two, two, tentwentyfour, modulus);
+      /* cgbn_modular_power(_env, result, result, p, modulus); */
+    while(mut_t > 0) {
+        cgbn_modular_power(_env, result, result, two, modulus);
+        mut_t = mut_t - 1024;
+    }
 
     /* if (t < grouping) { */
     /*     bn_t mut_x; */

@@ -11,16 +11,16 @@ int main() {
 
   printf("\n ==================== SIMPLE TESTS ==================== \n");
 
-  run_simple_test<params_puzzle>(2, 2);
-  run_simple_test<params_puzzle>(2, 4);
-  run_simple_test<params_puzzle>(2, 8);
-  run_simple_test<params_puzzle>(2, 16);
-  run_simple_test<params_puzzle>(2, 32);
-  run_simple_test<params_puzzle>(2, 64);
-  run_simple_test<params_puzzle>(2, 128);
-  run_simple_test<params_puzzle>(2, 256);
-  run_simple_test<params_puzzle>(2, 512);
-  run_simple_test<params_puzzle>(2, 1024);
+  /* run_simple_test<params_puzzle>(2, 2); */
+  /* run_simple_test<params_puzzle>(2, 4); */
+  /* run_simple_test<params_puzzle>(2, 8); */
+  /* run_simple_test<params_puzzle>(2, 16); */
+  /* run_simple_test<params_puzzle>(2, 32); */
+  /* run_simple_test<params_puzzle>(2, 64); */
+  /* run_simple_test<params_puzzle>(2, 128); */
+  /* run_simple_test<params_puzzle>(2, 256); */
+  /* run_simple_test<params_puzzle>(2, 512); */
+  /* run_simple_test<params_puzzle>(2, 1024); */
   run_simple_test<params_puzzle>(2, 2048);
   run_simple_test<params_puzzle>(2, 4096);
   run_simple_test<params_puzzle>(2, 8192);
@@ -30,20 +30,20 @@ int main() {
 
   printf("\n ==================== THROUGHPUT TESTS 1 ==================== \n");
 
-  run_puzzle_test<params_puzzle>(1, 25000);
-  run_puzzle_test<params_puzzle>(10, 25000);
-  run_puzzle_test<params_puzzle>(100, 25000);
-  run_puzzle_test<params_puzzle>(1000, 25000);
-  run_puzzle_test<params_puzzle>(10000, 25000);
+  run_puzzle_test<params_puzzle>(1, 16384);
+  run_puzzle_test<params_puzzle>(10, 16384);
+  run_puzzle_test<params_puzzle>(100, 16384);
+  run_puzzle_test<params_puzzle>(1000, 16384);
+  run_puzzle_test<params_puzzle>(10000, 16384);
 
   printf("\n ==================== THROUGHPUT TESTS 2 ==================== \n");
 
-  run_puzzle_test<params_puzzle>(1, 5000);
-  run_puzzle_test<params_puzzle>(10, 5000);
-  run_puzzle_test<params_puzzle>(100, 5000);
-  run_puzzle_test<params_puzzle>(1000, 5000);
-  run_puzzle_test<params_puzzle>(10000, 5000);
-  run_puzzle_test<params_puzzle>(100000, 5000);
+  run_puzzle_test<params_puzzle>(1, 4096);
+  run_puzzle_test<params_puzzle>(10, 4096);
+  run_puzzle_test<params_puzzle>(100, 4096);
+  run_puzzle_test<params_puzzle>(1000, 4096);
+  run_puzzle_test<params_puzzle>(10000, 4096);
+  run_puzzle_test<params_puzzle>(100000, 4096);
 
   printf("\n ==================== DONE ==================== \n");
   return 0;
