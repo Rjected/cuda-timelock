@@ -212,10 +212,10 @@ class powm_odd_t {
   // this is assuming power will equal 2^t. then we would have a lot of memory issues.
   __device__ __forceinline__ void grouped_fixed_window_powm_odd(bn_t &result, const bn_t &x, const bn_t &p, const bn_t &modulus, const uint32_t t) {
 
-    const uint32_t grouping = 1024;
+    /* const uint32_t grouping = 1024; */
     // First we calculate the exponent, in this case 2^grouping.
     // Then we divide to get an index, and take the modulus to get the last exponent.
-    bn_t primary_exponent;
+    /* bn_t primary_exponent; */
     // this is 1 because 1 = 2^0, we shift grouping times so the result will be
     // 2^0 * 2^grouping = 2^(0 + grouping) = 2^grouping
     /* cgbn_set_ui32(_env, primary_exponent, 1); */
@@ -224,48 +224,58 @@ class powm_odd_t {
     bn_t two;
     cgbn_set_ui32(_env, two, 2);
 
-    if (t < grouping) {
-        bn_t mut_x;
-        cgbn_set(_env, mut_x, x);
-        fixed_window_powm_odd(result, mut_x, p, modulus);
-        return;
-    }
+    /* if (t < grouping) { */
+    /*     bn_t mut_x; */
+    /*     cgbn_set(_env, mut_x, x); */
+    /*     fixed_window_powm_odd(result, mut_x, p, modulus); */
+    /*     return; */
+    /* } */
 
-    bn_t grp;
-    cgbn_set_ui32(_env, grp, grouping);
-    fixed_window_powm_odd(primary_exponent, two, grp, modulus);
+    /* bn_t grp; */
+    /* cgbn_set_ui32(_env, grp, grouping); */
+    /* fixed_window_powm_odd(primary_exponent, two, grp, modulus); */
     /* fixed_window_powm_odd(result, x, expon, modulus); */
 
     // limit = t / grouping
     // we don't care about the result being stored in a bn_t
-    uint32_t limit = t / grouping;
+    /* uint32_t limit = t / grouping; */
 
     // final_grouping = t % grouping
     // we don't care about the result being stored in a bn_t
-    const uint32_t final_grouping = t % grouping;
+    /* const uint32_t final_grouping = t % grouping; */
 
-    bn_t one;
-    cgbn_set_ui32(_env, one, 1);
-    bn_t zero;
-    cgbn_set_ui32(_env, zero, 0);
+    /* bn_t one; */
+    /* cgbn_set_ui32(_env, one, 1); */
+    /* bn_t zero; */
+    /* cgbn_set_ui32(_env, zero, 0); */
 
-    // Now we take 2^final_grouping for the final exponent
-    bn_t final_exponent;
-    cgbn_set_ui32(_env, final_exponent, 1);
-    cgbn_shift_left(_env, final_exponent, final_exponent, final_grouping);
-
-    // x is not constant so we create a mutable one
-    bn_t mut_x;
-    cgbn_set(_env, mut_x, x);
-    // now we do this a bunch of times
-    while (limit > 0) {
-      // x = x ^ primary_exponent (mod N)
-      fixed_window_powm_odd(mut_x, mut_x, primary_exponent, modulus);
-      limit--;
+    /* // Now we take 2^final_grouping for the final exponent */
+    /* bn_t final_exponent; */
+    /* cgbn_set_ui32(_env, final_exponent, 1); */
+    /* cgbn_shift_left(_env, final_exponent, final_exponent, final_grouping); */
+    if (t == 0) {
+        cgbn_set_ui32(_env, result, 1);
+        return;
     }
 
+    // x is not constant so we create a mutable one
+    cgbn_set_ui32(_env, result, 2);
+    cgbn_set(_env, result, x);
+
+    uint32_t mut_t = t;
+    while(mut_t > 1) {
+        fixed_window_powm_odd(result, result, two, modulus);
+        mut_t--;
+    }
+    // now we do this a bunch of times
+    /* while (limit > 0) { */
+    /*   // x = x ^ primary_exponent (mod N) */
+    /*   fixed_window_powm_odd(mut_x, mut_x, primary_exponent, modulus); */
+    /*   limit--; */
+    /* } */
+
     // and finally, the last will store the result
-    fixed_window_powm_odd(result, mut_x, final_exponent, modulus);
+    /* fixed_window_powm_odd(result, mut_x, final_exponent, modulus); */
 
     return;
   }
