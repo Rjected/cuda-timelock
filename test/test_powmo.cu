@@ -26,6 +26,9 @@ int main() {
   /* run_simple_test<params_puzzle>(2, 32768); */
   /* run_simple_test<params_puzzle>(2, 65536); */
 
-  /* run_puzzle_test<params_puzzle>(100, 15000); */
+  run_puzzle_test<params_puzzle>(1, 25000);
+  run_puzzle_test<params_puzzle>(10, 25000);
+  run_puzzle_test<params_puzzle>(100, 25000);
+  run_puzzle_test<params_puzzle>(1000, 25000);
   return 0;
 }

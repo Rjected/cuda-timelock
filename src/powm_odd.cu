@@ -453,7 +453,6 @@ class powm_odd_t {
     mpz_init(m);
     mpz_init(computed);
     mpz_init(correct);
-    int wrong = 0;
 
     for(int index=0;index<count;index++) {
       to_mpz(x, instances[index].x._limbs, params::BITS/32);
@@ -462,26 +461,25 @@ class powm_odd_t {
       to_mpz(computed, instances[index].result._limbs, params::BITS/32);
 
       mpz_powm(correct, x, p, m);
-      size_t instance_x_size = mpz_sizeinbase(x, 2);
-      size_t instance_p_size = mpz_sizeinbase(p, 2);
-      size_t instance_m_size = mpz_sizeinbase(m, 2);
-      size_t instance_r_size = mpz_sizeinbase(computed, 2);
-      size_t instance_c_size = mpz_sizeinbase(correct, 2);
-      printf("Instance %d: Number of bits in x: %lu\n", index, instance_x_size);
-      printf("Instance %d: Number of bits in p: %lu\n", index, instance_p_size);
-      printf("Instance %d: Number of bits in m: %lu\n", index, instance_m_size);
-      printf("Instance %d: Number of bits in r: %lu\n", index, instance_r_size);
-      printf("Instance %d: Number of bits in c: %lu\n", index, instance_c_size);
-      gmp_printf("x is an mpz \n\t%Zd\n", x);
-      gmp_printf("p is an mpz \n\t%Zd\n", p);
-      gmp_printf("m is an mpz \n\t%Zd\n", m);
-      gmp_printf("r is an mpz \n\t%Zd\n", computed);
-      gmp_printf("c is an mpz \n\t%Zd\n", correct);
+      /* size_t instance_x_size = mpz_sizeinbase(x, 2); */
+      /* size_t instance_p_size = mpz_sizeinbase(p, 2); */
+      /* size_t instance_m_size = mpz_sizeinbase(m, 2); */
+      /* size_t instance_r_size = mpz_sizeinbase(computed, 2); */
+      /* size_t instance_c_size = mpz_sizeinbase(correct, 2); */
+      /* printf("Instance %d: Number of bits in x: %lu\n", index, instance_x_size); */
+      /* printf("Instance %d: Number of bits in p: %lu\n", index, instance_p_size); */
+      /* printf("Instance %d: Number of bits in m: %lu\n", index, instance_m_size); */
+      /* printf("Instance %d: Number of bits in r: %lu\n", index, instance_r_size); */
+      /* printf("Instance %d: Number of bits in c: %lu\n", index, instance_c_size); */
+      /* gmp_printf("x is an mpz \n\t%Zd\n", x); */
+      /* gmp_printf("p is an mpz \n\t%Zd\n", p); */
+      /* gmp_printf("m is an mpz \n\t%Zd\n", m); */
+      /* gmp_printf("r is an mpz \n\t%Zd\n", computed); */
+      /* gmp_printf("c is an mpz \n\t%Zd\n", correct); */
 
       if(mpz_cmp(correct, computed)!=0) {
-        /* printf("gpu inverse kernel failed on instance %d\n", index); */
-          wrong++;
-        // return;
+        printf("gpu inverse kernel failed on instance %d\n", index);
+        return;
       }
     }
     printf("Number of powm's computed: %d\n", count);
@@ -492,11 +490,7 @@ class powm_odd_t {
     mpz_clear(computed);
     mpz_clear(correct);
 
-    if (wrong == 0) {
-        printf("All results match\n");
-    } else {
-        printf("Not all results match, %d wrong\n", wrong);
-    }
+    printf("All results match\n");
   }
 };
 
