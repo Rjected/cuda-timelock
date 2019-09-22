@@ -398,9 +398,7 @@ class powm_odd_t {
     mpz_t maxval;
     mpz_init(maxval);
 
-    mpz_t mod;
-    mpz_init_set(mod, N);
-    gmp_printf("\nmpz modulus before or-ing \n\t%Zd\n", mod);
+    /* gmp_printf("\nmpz modulus before or-ing \n\t%Zd\n", mod); */
     // instances[index].modulus._limbs[0] |= 1;
     for(index=0;index<count;index++) {
         // create 2^whatever
@@ -408,6 +406,9 @@ class powm_odd_t {
         mpz_init(e);
 
         mpz_pow_ui(e, two, t);
+
+        mpz_t mod;
+        mpz_init_set(mod, N);
 
         // now from_mpz that
         from_mpz(e, instances[index].power._limbs, params::BITS/32);
@@ -426,9 +427,9 @@ class powm_odd_t {
             from_mpz(thirteen, instances[index].x._limbs, params::BITS/32);
         }
 
+        mpz_clear(mod);
         mpz_clear(e);
     }
-    mpz_clear(mod);
 
     mpz_clear(maxval);
     mpz_clear(two);
@@ -696,7 +697,7 @@ void run_simple_test(const uint32_t a, const uint32_t time_value) {
   printf("Running GPU kernel ...\n");
 
   // launch kernel with blocks=ceil(instance_count/IPB) and threads=TPB
-  kernel_powm_odd<params><<<(instance_count+IPB-1)/IPB, TPB>>>(report, gpuInstances, instance_count);
+  grouped_fixed_kernel_powm_odd<params><<<(instance_count+IPB-1)/IPB, TPB>>>(report, gpuInstances, instance_count, time_value);
 
   // error report uses managed memory, so we sync the device (or stream) and check for cgbn errors
   CUDA_CHECK(cudaDeviceSynchronize());
